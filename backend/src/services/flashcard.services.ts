@@ -13,7 +13,7 @@ export const createFlashcard = async(
     const result = await pool.query(
         `
         INSERT INTO flashcards (user_id, question, answer)
-        VALUE ($1, $2, $3)
+        VALUES ($1, $2, $3)
         RETURNING *;
         `,
         [userId, question, answer]
@@ -25,4 +25,71 @@ export const createFlashcard = async(
 
     return result.rows[0];
 }
+
+export const getAllFlashcards = async (userId: string) =>{
+    const result = await pool.query(
+        `
+        SELECT * FROM flashcards
+        WHERE user_id = $1
+        ORDER BY created_at DESC
+        `,[userId]
+    );
+
+    return result.rows ;
+}
+
+
+export const getFlashcardById = async (id: string)=>{
+    const result = await pool.query(
+        `
+        SELECT * FROM flashcards 
+        WHERE id = $1
+        `, [id]
+    )
+
+    if(result.rows.length=== 0){
+        throw new ApiError(404, "Flashcard not found");
+    }
+
+    return result.rows[0];
+};
+
+export const updateFlashcard = async (
+    id:string,
+    question: string,
+    answer: string 
+)=>{
+    const result = await pool.query(
+        `
+        UPDATE flashcards 
+        SET question = $1
+        answer = $2
+        updated_at = NOW()
+        WHERE id = $3
+        RETURNING *
+        `,[question, answer, id] 
+    );
+
+    if (result.rows.length===0){
+        throw new ApiError(404, "Flashcard not found!");
+    }
+
+    return result.rows[0];
+};
+
+export const deleteFlashcard = async (id: string)=>{
+    const result = await pool.query(
+        `
+        DELETE FROM flashcards
+        WHERE id = $1
+        RETURNING *`,
+        [id] 
+    );
+    if ( result.rows.length===0){
+        throw new ApiError(404, "Flashcard not found!");
+    };
+
+    return result.rows[0];
+};
+
 

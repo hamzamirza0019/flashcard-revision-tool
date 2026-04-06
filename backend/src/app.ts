@@ -9,12 +9,9 @@ const app:Application = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/flashcard", flashcardRoutes);
+app.use("/api", flashcardRoutes);
 
 app.use(globalErrorHandler);
 
-app.get("/", (req, res) =>{
-    res.send("backend running");
-});
 
 export default app;

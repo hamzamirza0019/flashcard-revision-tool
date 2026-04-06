@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError";
 
 export const createFlashcard = async(
     userId: string,
+    deckId: string,
     question: string,
     answer: string
 ): Promise<Flashcard> =>{
@@ -12,11 +13,11 @@ export const createFlashcard = async(
     }
     const result = await pool.query(
         `
-        INSERT INTO flashcards (user_id, question, answer)
-        VALUES ($1, $2, $3)
+        INSERT INTO flashcards (user_id, deck_id, question, answer)
+        VALUES ($1, $2, $3, $4)
         RETURNING *;
         `,
-        [userId, question, answer]
+        [userId, deckId, question, answer]
     );
 
     if(result.rows.length === 0){
@@ -62,8 +63,8 @@ export const updateFlashcard = async (
     const result = await pool.query(
         `
         UPDATE flashcards 
-        SET question = $1
-        answer = $2
+        SET question = $1,
+        answer = $2,
         updated_at = NOW()
         WHERE id = $3
         RETURNING *
@@ -92,4 +93,11 @@ export const deleteFlashcard = async (id: string)=>{
     return result.rows[0];
 };
 
+export const getCardsByDeck = async (deckId: string) => {
+  const result = await pool.query(
+    `SELECT * FROM flashcards WHERE deck_id = $1`,
+    [deckId]
+  );
 
+  return result.rows;
+};

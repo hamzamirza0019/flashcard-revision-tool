@@ -1,37 +1,39 @@
 import { Request, Response } from "express";
-import { createFlashcard, updateFlashcard, getAllFlashcards, getFlashcardById, deleteFlashcard } from "../services/flashcard.services";
+import { createFlashcard, updateFlashcard, getAllFlashcards, getFlashcardById, deleteFlashcard, getCardsByDeck } from "../services/flashcard.services";
 import { asyncHandler } from "../utils/AsyncHandler";
 import { ApiResponce } from "../utils/ApiResponce";
-import { join } from "node:path";
+import { ApiError } from "../utils/ApiError";
 
-const userId = "temp-id";
+const userId = "11111111-1111-1111-1111-111111111111";
 
 export const createFlashcardController = asyncHandler(
     async ( req: Request, res:Response)=>{
         const {question, answer} = req.body;
-        const flashcard = await createFlashcard(userId, question, answer);
-
-        res.status(200).json(
-            ApiResponce(true, flashcard, "Flashcard created successfully...")
-        )
+        const {id: deckId} = req.params;
+        const flashcard = await createFlashcard(userId, deckId as string, question, answer);
+            res.status(201).json(
+                ApiResponce(true, flashcard, "Flashcard created successfully...")
+            )
     }
 );
 
 
 export const getAllFlashcardsController = asyncHandler(async (req:Request , res:Response)=>{
+
     const cards = await getAllFlashcards(userId);
 
-    res.status(201).json(
-        ApiResponce(true, cards, "Flashcard fwtch successfully...")
+    res.status(200).json(
+        ApiResponce(true, cards, "Flashcards fetched successfully")
     )
 });
 
 export const getFlashcardByIdController = asyncHandler(
     async(req: Request, res: Response)=>{
-        const card = await getFlashcardById(userId);
+        const id = req.params.id as string;
+        const card = await getFlashcardById(id);
 
-        res.status(201).json(
-            ApiResponce(true, card, "Flashcard fetch successfully...")
+        res.status(200).json(
+            ApiResponce(true, card, "Flashcard fetched successfully")
         );
     }
 );
@@ -43,8 +45,8 @@ export const updateFlashcardController = asyncHandler(
 
         const update = await updateFlashcard(id , question, answer);
 
-        res.status(202).json(
-            ApiResponce(true, update, "Flashcards are updated...")
+        res.status(200).json(
+            ApiResponce(true, update, "Flashcard updated successfully")
         );
     }
 );
@@ -54,9 +56,22 @@ export const deleteFlashcrdByIdController = asyncHandler(
         const id = req.params.id as string;
         const deleted = await deleteFlashcard(id);
 
-        res.status(201).json(
-            ApiResponce(true, deleted, "Flashcard has deleted successfully")
+        res.status(200).json(
+            ApiResponce(true, deleted, "Flashcard deleted successfully")
         );
     }
 );
 
+import { validate as isUUID } from "uuid";
+
+export const getCardsByDeckController = asyncHandler(async (req, res) => {
+  const { id: deckId } = req.params;
+
+  if (!isUUID(deckId)) {
+    throw new ApiError(400, "Invalid deck ID");
+  }
+
+  const cards = await getCardsByDeck(deckId as string);
+
+  res.json(ApiResponce(true, cards, "Cards got"));
+});

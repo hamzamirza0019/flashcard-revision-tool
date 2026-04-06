@@ -10,7 +10,7 @@ export const ApiResponce = <T>(
     message: string,
 ): ApiResponce<T> =>{
     return {
-        success: true,
+        success,
         message,
         data
     }

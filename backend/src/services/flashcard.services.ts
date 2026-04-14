@@ -11,6 +11,17 @@ export const createFlashcard = async(
     if(!question || !answer){
         throw new ApiError(400, "Question And Answers are required!")
     }
+
+    const deckCheck = await pool.query( 'SELECT id FROM decks WHERE id = $1', [deckId] );
+
+    if (deckCheck.rows.length=== 0){
+         await pool.query(
+    `INSERT INTO decks (id, user_id, name)
+     VALUES ($1, $2, $3)`,
+    [deckId, userId, "Auto Created Deck"]
+  );
+    }
+
     const result = await pool.query(
         `
         INSERT INTO flashcards (user_id, deck_id, question, answer)
@@ -56,41 +67,45 @@ export const getFlashcardById = async (id: string)=>{
 };
 
 export const updateFlashcard = async (
-    id:string,
-    question: string,
-    answer: string 
-)=>{
-    const result = await pool.query(
-        `
-        UPDATE flashcards 
-        SET question = $1,
+  id: string,
+  cardId: string,
+  question: string,
+  answer: string
+) => {
+  const result = await pool.query(
+    `
+    UPDATE flashcards 
+    SET question = $1,
         answer = $2,
         updated_at = NOW()
-        WHERE id = $3
-        RETURNING *
-        `,[question, answer, id] 
-    );
+    WHERE id = $3 AND deck_id = $4
+    RETURNING *
+    `,
+    [question, answer, cardId, id]
+  );
 
-    if (result.rows.length===0){
-        throw new ApiError(404, "Flashcard not found!");
-    }
+  if (result.rows.length === 0) {
+    throw new ApiError(404, "Flashcard not found in this deck!");
+  }
 
-    return result.rows[0];
+  return result.rows[0];
 };
 
-export const deleteFlashcard = async (id: string)=>{
-    const result = await pool.query(
-        `
-        DELETE FROM flashcards
-        WHERE id = $1
-        RETURNING *`,
-        [id] 
-    );
-    if ( result.rows.length===0){
-        throw new ApiError(404, "Flashcard not found!");
-    };
+export const deleteFlashcard = async (id: string, cardId: string) => {
+  const result = await pool.query(
+    `
+    DELETE FROM flashcards
+    WHERE id = $1 AND deck_id = $2
+    RETURNING *
+    `,
+    [cardId, id]
+  );
 
-    return result.rows[0];
+  if (result.rows.length === 0) {
+    throw new ApiError(404, "Flashcard not found in this deck!");
+  }
+
+  return result.rows[0];
 };
 
 export const getCardsByDeck = async (deckId: string) => {

@@ -16,7 +16,7 @@ router.get("/decks/:id/cards/:cardId", getFlashcardByIdController);
 router.put("/decks/:id/cards/:cardId", updateFlashcardController);
 router.delete("/decks/:id/cards/:cardId", deleteFlashcrdByIdController);
 
-// (Optional) If you had this earlier
-// router.get("/cards", getAllFlashcardsController);
+
+router.get("/cards", getAllFlashcardsController);
 
 export default router;

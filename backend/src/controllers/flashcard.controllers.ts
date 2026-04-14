@@ -40,10 +40,10 @@ export const getFlashcardByIdController = asyncHandler(
 
 export const updateFlashcardController = asyncHandler(
     async(req: Request, res: Response)=>{
-        const id = req.params.id as string;
+        const { id, cardId} = req.params ;
         const { question, answer } = req.body;
 
-        const update = await updateFlashcard(id , question, answer);
+        const update = await updateFlashcard(id as string, cardId as string, question, answer);
 
         res.status(200).json(
             ApiResponce(true, update, "Flashcard updated successfully")
@@ -53,8 +53,10 @@ export const updateFlashcardController = asyncHandler(
 
 export const deleteFlashcrdByIdController = asyncHandler(
     async(req:Request, res:Response)=>{
-        const id = req.params.id as string;
-        const deleted = await deleteFlashcard(id);
+        const { id, cardId } = req.params;
+        console.log("deckid", id, "\n cardid", cardId);
+        
+        const deleted = await deleteFlashcard(id as string, cardId as string);
 
         res.status(200).json(
             ApiResponce(true, deleted, "Flashcard deleted successfully")
